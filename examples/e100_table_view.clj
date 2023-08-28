@@ -2,19 +2,31 @@
   (:require [cljfx.api :as fx]))
 
 
-(def column-defs [{:column/id :name
-                   :column/name "Name"
-                   :column/render (fn [x]
-                                    {:text (:name x)})}
-                  {:column/id :color
-                   :column/name "Color"
-                   :column/render (fn [x]
-                                    {:style {:-fx-background-color
-                                             (:color x)}})}
-                  {:column/id :description
-                   :column/name "Description"
-                   :column/render (fn [x]
-                                    {:text (:description x)})}])
+(defn- string-cell [{:keys [column/id]}]
+  (fn [x]
+    {:text (id x)}))
+
+(defn- color-cell [_]
+  (fn [x]
+    {:style {:-fx-background-color
+             (:color x)}}))
+
+
+(def reg {:cell/string #'string-cell
+          :cell/color #'color-cell})
+
+
+(def column-defs [{:column/id     :name
+                   :column/name   "Name"
+                   :column/render :cell/string}
+                  {:column/id     :color
+                   :column/name   "Color"
+                   :column/render :cell/color}
+                  {:column/id     :description
+                   :column/name   "Description"
+                   :column/render :cell/string}])
+
+
 (def data [{:name "red" :color :red :description "This is red"}
            {:name "green" :color :green :description "This is green"}
            {:name "blue" :color :blue :description "This is blue"}
@@ -22,24 +34,22 @@
            {:name "cyan" :color :cyan :description "This is cyan"}])
 
 
-(defn header-cell [{:keys [column/id column/name column/render]}]
+(def app-db (atom data))
+
+
+(defn header-cell [{:keys [column/name column/render] :as cell-heading}]
   {:fx/type            :table-column
    :text               name
    :cell-value-factory identity
    :cell-factory       {:fx/cell-type :table-cell
-                        :describe     render}})
+                        :describe     ((render reg) cell-heading)}})
 
 
 (defn table-view [{:keys [data columns pref-width pref-height]}]
   {:fx/type     :table-view
-   :pref-width pref-width
+   :pref-width  pref-width
    :pref-height pref-height
-   :row-factory {:fx/cell-type :table-row
-                 :describe     (fn [x]
-                                 {:style {:-fx-border-color x}})}
-   :columns     (->> columns
-                  (map header-cell)
-                  (into []))
+   :columns     (map header-cell columns)
    :items       data})
 
 
@@ -49,35 +59,16 @@
      :showing true
      :title   "Table View example"
      :scene   {:fx/type :scene
-               :root    {:fx/type table-view
-                         :pref-width 960
+               :root    {:fx/type     table-view
+                         :pref-width  960
                          :pref-height 540
-                         :columns column-defs
-                         :data data}}}))
+                         :columns     column-defs
+                         :data        data}}}))
 
 
 
 
 
 (comment
-  (->> data
-    first
-    keys
-    (map header-cell)
-    (into []))
-
-
-
-  (def name (first (->> data
-                     first
-                     keys)))
-
-
-  {:fx/type            :table-column
-   :text               (str name)
-   :cell-value-factory identity
-   :cell-factory       {:fx/cell-type :table-cell
-                        :describe     (fn [x]
-                                        {:text x})}}
 
   ())
