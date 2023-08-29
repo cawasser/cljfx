@@ -67,7 +67,6 @@
    :items       data})
 
 
-
 (defn root [{:keys [data]}]
   {:fx/type :stage
    :showing true
