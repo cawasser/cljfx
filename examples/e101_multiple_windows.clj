@@ -3,6 +3,9 @@
   (:import [javafx.stage Screen]))
 
 
+(def app-db (atom {:description "some new text"}))
+
+
 (defn text-content [{:keys [x y width height description]}]
   {:fx/type :v-box
    :alignment :center
@@ -18,7 +21,7 @@
    :style {:-fx-background-color color}})
 
 
-(defn window [{:keys [x y width height content] :as params}]
+(defn window [{:keys [x y width height content description] :as params}]
   (println "window" content)
   {:fx/type       :stage
    :always-on-top true
@@ -47,23 +50,31 @@
     .getWidth
     (- width)))
 
-(fx/on-fx-thread
-  (fx/create-component
-    {:fx/type fx/ext-many
-     :desc [{:fx/type     window
-             :x           0
-             :y           0
-             :width       width
-             :height      height
-             :description "Top Left"
-             :content     text-content}
-            {:fx/type window
-             :x 400
-             :y 0
-             :width width
-             :height height
-             :color :green
-             :content color-content}]}))
+
+(defn root [{:keys [description]}]
+  {:fx/type fx/ext-many
+   :desc [{:fx/type     window
+           :x           0
+           :y           0
+           :width       width
+           :height      height
+           :description description
+           :content     text-content}
+          {:fx/type window
+           :x 400
+           :y 0
+           :width width
+           :height height
+           :color :green
+           :content color-content}]})
+
+(def renderer
+  (fx/create-renderer
+    :middleware (fx/wrap-map-desc assoc :fx/type root)))
+
+
+(fx/mount-renderer app-db renderer)
+
 
 
 
