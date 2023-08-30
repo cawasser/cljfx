@@ -5,8 +5,9 @@
   {:fx/type :v-box
    :alignment :center
    :children [{:fx/type :label
-               :text (str "Window at [" x ", " y "] "
-                       "with size " width "x" height)}
+               :text (str "Window at [" x "px, " y "px] "
+                       "with size " width "px x " height
+                       "px")}
               {:fx/type :label
                :text (or description "DEFAULT TEXT")}]})
 
