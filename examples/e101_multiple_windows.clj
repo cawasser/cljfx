@@ -1,27 +1,15 @@
 (ns e101-multiple-windows
-  (:require [cljfx.api :as fx])
+  (:require [cljfx.api :as fx]
+            [e101-support :as s])
   (:import [javafx.stage Screen]))
 
 
-(def app-db (atom {:description "some new text"}))
+(def app-db (atom {:description "some new text"
+                   :color :yellow}))
 
 
-(defn text-content [{:keys [x y width height description]}]
-  {:fx/type :v-box
-   :alignment :center
-   :children [{:fx/type :label
-               :text (str "Window at [" x ", " y "] "
-                       "with size " width "x" height)}
-              {:fx/type :label
-               :text (or description "DEFAULT TEXT")}]})
 
-
-(defn color-content [{:keys [color]}]
-  {:fx/type :pane
-   :style {:-fx-background-color color}})
-
-
-(defn window [{:keys [x y width height content description] :as params}]
+(defn window [{:keys [x y width height content] :as params}]
   (println "window" content)
   {:fx/type       :stage
    :always-on-top true
@@ -51,7 +39,7 @@
     (- width)))
 
 
-(defn root [{:keys [description]}]
+(defn root [{:keys [description color]}]
   {:fx/type fx/ext-many
    :desc [{:fx/type     window
            :x           0
@@ -59,14 +47,14 @@
            :width       width
            :height      height
            :description description
-           :content     text-content}
+           :content     s/text-content}
           {:fx/type window
            :x 400
            :y 0
            :width width
            :height height
-           :color :green
-           :content color-content}]})
+           :color color
+           :content s/color-content}]})
 
 (def renderer
   (fx/create-renderer
@@ -79,14 +67,14 @@
 
 
 (comment
-  (def content text-content)
+  (def content s/text-content)
   (def params {:fx/type     window
                :x           0
                :y           0
                :width       width
                :height      height
                :description "Top Left"
-               :content     text-content})
+               :content     s/text-content})
   (merge {:fx/type content} (dissoc params :fx/type))
 
 
