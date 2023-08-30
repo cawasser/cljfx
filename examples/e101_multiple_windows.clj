@@ -3,7 +3,7 @@
   (:import [javafx.stage Screen]))
 
 
-(defn text-description [{:keys [x y width height description]}]
+(defn text-content [{:keys [x y width height description]}]
   {:fx/type :v-box
    :alignment :center
    :children [{:fx/type :label
@@ -50,13 +50,13 @@
 (fx/on-fx-thread
   (fx/create-component
     {:fx/type fx/ext-many
-     :desc [{:fx/type window
-             :x 0
-             :y 0
-             :width width
-             :height height
+     :desc [{:fx/type     window
+             :x           0
+             :y           0
+             :width       width
+             :height      height
              :description "Top Left"
-             :content text-description}
+             :content     text-content}
             {:fx/type window
              :x 400
              :y 0
@@ -68,14 +68,14 @@
 
 
 (comment
-  (def content text-description)
-  (def params {:fx/type window
-               :x 0
-               :y 0
-               :width width
-               :height height
+  (def content text-content)
+  (def params {:fx/type     window
+               :x           0
+               :y           0
+               :width       width
+               :height      height
                :description "Top Left"
-               :content text-description})
+               :content     text-content})
   (merge {:fx/type content} (dissoc params :fx/type))
 
 
