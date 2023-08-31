@@ -22,7 +22,7 @@
 
 (fx/mount-renderer *state renderer)
 
-;; When *state is flooded with changes, cljfx stays responsive by limiting
+;; When app-db is flooded with changes, cljfx stays responsive by limiting
 ;; component updates to at most 1 per JavaFX frame
 
 (dotimes [_ 16]

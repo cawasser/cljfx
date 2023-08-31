@@ -3,33 +3,36 @@
             [clojure.core.cache :as cache]))
 
 
-(def *state
+(def app-db
   (atom
     (fx/create-context
-      {:id->potion     {0 {:id             0
-                           :name           "Antidote"
-                           :ingredient-ids [0 1]}
-                        1 {:id             1
-                           :name           "Explosive cocktail"
-                           :ingredient-ids [2 3 4]}
-                        2 {:id             2
-                           :name           "Petrificoffee"
-                           :ingredient-ids [1 5]}
-                        3 {:id             3
-                           :name           "Viscositea"
-                           :ingredient-ids [0 4]}}
-       :id->ingredient {0 {:id   0
-                           :name "Applebloom"}
-                        1 {:id   1
-                           :name "Dragonwort"}
-                        2 {:id   2
-                           :name "Ruby"}
-                        3 {:id   3
-                           :name "Fireberries"}
-                        4 {:id   4
-                           :name "Sulfur"}
-                        5 {:id   5
-                           :name "Web"}}}
+      {:next-potion-id     4
+       :next-ingredient-id 6
+
+       :id->potion         {0 {:id             0
+                               :name           "Antidote"
+                               :ingredient-ids [0 1]}
+                            1 {:id             1
+                               :name           "Explosive cocktail"
+                               :ingredient-ids [2 3 4]}
+                            2 {:id             2
+                               :name           "Petrificoffee"
+                               :ingredient-ids [1 5]}
+                            3 {:id             3
+                               :name           "Viscositea"
+                               :ingredient-ids [0 4]}}
+       :id->ingredient     {0 {:id   0
+                               :name "Applebloom"}
+                            1 {:id   1
+                               :name "Dragonwort"}
+                            2 {:id   2
+                               :name "Ruby"}
+                            3 {:id   3
+                               :name "Fireberries"}
+                            4 {:id   4
+                               :name "Sulfur"}
+                            5 {:id   5
+                               :name "Web"}}}
       cache/lru-cache-factory)))
 
 
@@ -45,11 +48,29 @@
 
 
 (defmethod event-handler ::remove-ingredient [{:keys [potion-id ingredient-id]}]
-  (swap! *state
+  (swap! app-db
     fx/swap-context
     update-in
     [:id->potion potion-id :ingredient-ids]
     #(vec (remove #{ingredient-id} %))))
+
+
+(defn next-potion-id []
+  (swap! app-db
+    fx/swap-context
+    update :next-potion-id inc)
+  (fx/sub-ctx @app-db #(fx/sub-val % :next-potion-id)))
+
+
+(defmethod event-handler ::add-potion [{:keys [potion-name] :as params}]
+  (println "::add-potion" params)
+  (let [new-id (next-potion-id)
+        new-potion {:id             new-id
+                    :name           potion-name
+                    :ingredient-ids []}]
+    (swap! app-db
+      fx/swap-context
+      assoc-in [:id->potion new-id] new-potion)))
 
 
 (defn close-icon [{:keys [on-remove]}]
@@ -221,13 +242,21 @@
            :fx.opt/map-event-handler event-handler}))
 
 
-(fx/mount-renderer *state renderer)
+(fx/mount-renderer app-db renderer)
 
 
 
 
 (comment
 
+  (event-handler {:event/type ::add-potion
+                  :potion-name "Philther"})
+
+
+
+  (event-handler {:event/type ::add-ingredient
+                  :potion-name "Philther"
+                  :ingredient-name "Fireberries"})
 
 
   ())
