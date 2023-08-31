@@ -44,9 +44,54 @@
   (sort (keys (fx/sub-val context :id->ingredient))))
 
 
+(defn- next-potion-id []
+  (swap! app-db
+    fx/swap-context
+    update :next-potion-id inc)
+  (fx/sub-ctx @app-db #(fx/sub-val % :next-potion-id)))
+
+
+(defn- get-potion [potion-name]
+  (let [db (fx/sub-ctx @app-db #(fx/sub-val % :id->potion))]
+    (as-> db m
+      (map (juxt key #(-> % val :name)) m)
+      (filter (fn [[k v]] (= potion-name v)) m)
+      (first m)
+      (first m))))
+
+
+(defn get-ingredient [ingredient-name]
+  (let [db (fx/sub-ctx @app-db #(fx/sub-val % :id->ingredient))]
+    (as-> db m
+      (map (juxt key #(-> % val :name)) m)
+      (filter (fn [[k v]] (= ingredient-name v)) m)
+      (first m))))
+
+
+(defn- new-ingredient [ingredient-id ingredient-name]
+  (swap! app-db
+    fx/swap-context
+    assoc-in [:id->ingredient ingredient-id]
+    {:id ingredient-id :name ingredient-name}))
+
+
+(defn- ingredient-id [ingredient-name]
+  (let [[current-id _] (get-ingredient ingredient-name)]
+    (if current-id
+      current-id
+      (do
+        (swap! app-db
+          fx/swap-context
+          update :next-ingredient-id inc)
+        (let [new-id (fx/sub-ctx @app-db #(fx/sub-val % :next-ingredient-id))]
+          (new-ingredient new-id ingredient-name)
+          new-id)))))
+
+
 (defmulti event-handler :event/type)
 
 
+; ::remove-ingredient
 (defmethod event-handler ::remove-ingredient [{:keys [potion-id ingredient-id]}]
   (swap! app-db
     fx/swap-context
@@ -55,22 +100,27 @@
     #(vec (remove #{ingredient-id} %))))
 
 
-(defn next-potion-id []
-  (swap! app-db
-    fx/swap-context
-    update :next-potion-id inc)
-  (fx/sub-ctx @app-db #(fx/sub-val % :next-potion-id)))
-
-
+; ::add-potion
 (defmethod event-handler ::add-potion [{:keys [potion-name] :as params}]
   (println "::add-potion" params)
-  (let [new-id (next-potion-id)
+  (let [new-id     (next-potion-id)
         new-potion {:id             new-id
                     :name           potion-name
                     :ingredient-ids []}]
     (swap! app-db
       fx/swap-context
       assoc-in [:id->potion new-id] new-potion)))
+
+
+; ::add-ingredient
+(defmethod event-handler ::add-ingredient [{:keys [potion-name ingredient-name] :as params}]
+  (println "::add-ingredient" params)
+  (let [ingredient-id (ingredient-id ingredient-name)
+        potion-id     (get-potion potion-name)]
+    (swap! app-db
+      fx/swap-context
+      update-in [:id->potion potion-id :ingredient-ids]
+      #(vec (conj % ingredient-id)))))
 
 
 (defn close-icon [{:keys [on-remove]}]
@@ -249,14 +299,77 @@
 
 (comment
 
-  (event-handler {:event/type ::add-potion
+  (event-handler {:event/type  ::add-potion
                   :potion-name "Philther"})
 
 
 
-  (event-handler {:event/type ::add-ingredient
-                  :potion-name "Philther"
+  (event-handler {:event/type      ::add-ingredient
+                  :potion-name     "Philther"
                   :ingredient-name "Fireberries"})
 
 
   ())
+
+
+; logic to find a potion by name
+(comment
+  (def potion-name "Antidote")
+
+  (let [db (fx/sub-ctx @app-db #(fx/sub-val % :id->potion))]
+    (as-> db m
+      (map (juxt key #(-> % val :name)) m)
+      (filter (fn [[k v]] (= potion-name v)) m)
+      (first m)
+      (first m)))
+
+
+  ())
+
+; logic to find an ingredient by name, or assign a new id if needed
+(comment
+  (do
+    (def r (-> @app-db
+             (get-in [:cljfx.context/m :id->ingredient])))
+    (def ingredient-name "Fireberries")
+    (def db (fx/sub-ctx @app-db #(fx/sub-val % :id->ingredient))))
+
+  (map (juxt key #(-> % val :name)) r)
+
+  (as-> db m
+    (map (juxt key #(-> % val :name)) m)
+    (filter (fn [[k v]] (= ingredient-name v)) m)
+    (first m))
+
+
+  (let [db (fx/sub-ctx @app-db #(fx/sub-val % :id->ingredient))]
+    (as-> db m
+      (map (juxt key #(-> % val :name)) m)
+      (filter (fn [[k v]] (= ingredient-name v)) m)
+      (first m)))
+
+
+  (get-ingredient ingredient-name)
+
+  (ingredient-id ingredient-name)
+  (ingredient-id "Something New")
+
+
+  ())
+
+
+; logic to add a new ingredient to an existing potion
+(comment
+  (do
+    (def potion-name "Antidote")
+    (def ingredient-name "Eye of Newt"))
+
+  (event-handler {:event/type      ::add-ingredient
+                  :potion-name     potion-name
+                  :ingredient-name ingredient-name})
+
+
+
+
+  ())
+
