@@ -6,8 +6,8 @@
 (def app-db
   (atom
     (fx/create-context
-      {:next-potion-id     4
-       :next-ingredient-id 6
+      {:next-potion-id     3
+       :next-ingredient-id 5
 
        :id->potion         {0 {:id             0
                                :name           "Antidote"
@@ -325,6 +325,7 @@
 
 
   ())
+
 
 ; logic to find an ingredient by name, or assign a new id if needed
 (comment
