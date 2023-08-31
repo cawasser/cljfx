@@ -6,7 +6,7 @@
 
 
 (def app-db (atom {:description "some new text"
-                   :color :yellow}))
+                   :color       :yellow}))
 
 
 (def width 300)
@@ -25,22 +25,30 @@
     (- width)))
 
 
+(defn description [{:keys [description]}]
+  {:fx/type s/text-content
+   :x 0 :y 0 :width 0 :height 0
+   :description description})
+
+
 (defn root [{:keys [description color]}]
   {:fx/type fx/ext-many
-   :desc [{:fx/type     w/window
-           :x           0
-           :y           0
-           :width       width
-           :height      height
-           :description description
-           :content     s/text-content}
-          {:fx/type w/window
-           :x 400
-           :y 0
-           :width width
-           :height height
-           :color color
-           :content s/color-content}]})
+   :desc    [{:fx/type w/window
+              :x       0
+              :y       0
+              :width   width
+              :height  height
+              ;:description description
+              :content {:fx/type description
+                        :description description}}                         ;s/text-content}
+             {:fx/type w/window
+              :x       400
+              :y       0
+              :width   width
+              :height  height
+              :color   color
+              :content s/color-content}]})
+
 
 (def renderer
   (fx/create-renderer
