@@ -3,6 +3,11 @@
             [clojure.core.cache :as cache]))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; region ; STATE MGMT
+;
+
 (def app-db
   (atom
     (fx/create-context
@@ -92,12 +97,27 @@
 
 
 ; ::remove-ingredient
-(defmethod event-handler ::remove-ingredient [{:keys [potion-id ingredient-id]}]
+(defmethod event-handler ::remove-ingredient
+  [{:keys [potion-id ingredient-id] :as params}]
+  (println "::remove-ingredient" params)
   (swap! app-db
     fx/swap-context
     update-in
     [:id->potion potion-id :ingredient-ids]
     #(vec (remove #{ingredient-id} %))))
+
+
+; ::remove-ingredient-by-name
+(defmethod event-handler ::remove-ingredient-by-name
+  [{:keys [potion-name ingredient-name] :as params}]
+  (println "::remove-ingredient-by-name" params)
+  (let [potion-id (get-potion potion-name)
+        ingredient-id (ingredient-id ingredient-name)]
+    (swap! app-db
+      fx/swap-context
+      update-in
+      [:id->potion potion-id :ingredient-ids]
+      #(vec (remove #{ingredient-id} %)))))
 
 
 ; ::add-potion
@@ -123,23 +143,6 @@
       #(vec (conj % ingredient-id)))))
 
 
-(defn close-icon [{:keys [on-remove]}]
-  {:fx/type          :stack-pane
-   :on-mouse-clicked on-remove
-   :children
-   [{:fx/type :svg-path
-     :fill    :gray
-     :scale-x 0.75
-     :scale-y 0.75
-     :content (str "M15.898,4.045c-0.271-0.272-0.713-0.272-0.986,0l-4.71,4.711L5.493,"
-                "4.045c-0.272-0.272-0.714-0.272-0.986,0s-0.272,0.714,0,0.986l4.709,"
-                "4.711l-4.71,4.711c-0.272,0.271-0.272,0.713,0,0.986c0.136,0.136,0.314,"
-                "0.203,0.492,0.203c0.179,0,0.357-0.067,0.493-0.203l4.711-4.711l4.71,"
-                "4.711c0.137,0.136,0.314,0.203,0.494,0.203c0.178,0,0.355-0.067,"
-                "0.492-0.203c0.273-0.273,0.273-0.715,0-0.986l-4.711-4.711l4.711-4."
-                "711C16.172,4.759,16.172,4.317,15.898,4.045z")}]})
-
-
 (defn sub-ingredient-id->potion-ids-map [context]
   (->> (fx/sub-val context :id->potion)
     vals
@@ -155,6 +158,30 @@
 
 (defn sub-ingredient-id->potion-ids [context id]
   (get (fx/sub-ctx context sub-ingredient-id->potion-ids-map) id))
+
+; endregion
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; region ; UI ELEMENTS
+;
+
+(defn close-icon [{:keys [on-remove]}]
+  {:fx/type          :stack-pane
+   :on-mouse-clicked on-remove
+   :children
+   [{:fx/type :svg-path
+     :fill    :gray
+     :scale-x 0.75
+     :scale-y 0.75
+     :content (str "M15.898,4.045c-0.271-0.272-0.713-0.272-0.986,0l-4.71,4.711L5.493,"
+                "4.045c-0.272-0.272-0.714-0.272-0.986,0s-0.272,0.714,0,0.986l4.709,"
+                "4.711l-4.71,4.711c-0.272,0.271-0.272,0.713,0,0.986c0.136,0.136,0.314,"
+                "0.203,0.492,0.203c0.179,0,0.357-0.067,0.493-0.203l4.711-4.711l4.71,"
+                "4.711c0.137,0.136,0.314,0.203,0.494,0.203c0.178,0,0.355-0.067,"
+                "0.492-0.203c0.273-0.273,0.273-0.715,0-0.986l-4.711-4.711l4.711-4."
+                "711C16.172,4.759,16.172,4.317,15.898,4.045z")}]})
 
 
 (defn section-title [{:keys [text]}]
@@ -271,7 +298,7 @@
 
 (defn root-view [_]
   {:fx/type :stage
-   :title   "Book of potions"
+   :title   "Book of Potions"
    :showing true
    :width   600
    :height  400
@@ -280,6 +307,8 @@
                        :divider-positions [0.5]
                        :items             [{:fx/type potion-list}
                                            {:fx/type ingredient-list}]}}})
+
+; endregion
 
 
 (def renderer
@@ -297,19 +326,33 @@
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; region ; rich comments
+;
+
+; exercise the app-db
 (comment
 
   (event-handler {:event/type  ::add-potion
                   :potion-name "Philther"})
 
 
-
   (event-handler {:event/type      ::add-ingredient
                   :potion-name     "Philther"
                   :ingredient-name "Fireberries"})
+  (event-handler {:event/type      ::add-ingredient
+                  :potion-name     "Philther"
+                  :ingredient-name "Eye of Newt"})
+
+
+  (event-handler  {:event/type      ::remove-ingredient-by-name
+                   :potion-name     "Philther"
+                   :ingredient-name "Eye of Newt"})
 
 
   ())
+
 
 
 ; logic to find a potion by name
@@ -374,3 +417,16 @@
 
   ())
 
+
+
+; logic to remove an existing potion (must remove the potion from all the
+; ingredients too
+(comment
+  (do
+    (def potion-name "Philther"))
+
+
+
+  ())
+
+; endregion
