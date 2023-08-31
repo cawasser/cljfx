@@ -55,14 +55,14 @@
               :content     s/text-content}                  ;s/text-content}
              {:fx/type w/window
               :x       400
-              :y       0
+              :y       100
               :width   width
               :height  height
               :color   color
               :content s/color-content}
              {:fx/type     w/window
               :x           800
-              :y           0
+              :y           300
               :width       width
               :height      height
               :pref-width  width
@@ -100,6 +100,9 @@
 
 
   (swap! app-db assoc :description "YELLOW")
+
+  (swap! app-db update :customer/orders
+    #(conj % {:name "orange" :color :orange :description "This is orange"}))
 
 
   ())
