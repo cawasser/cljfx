@@ -5,21 +5,19 @@
 
 
 
-(def column-headers [{:column/id     :name
-                      :column/name   "Name"
-                      :column/render :cell/string}
-                     {:column/id     :color
-                      :column/name   "Color"
-                      :column/render :cell/color}
-                     {:column/id         :description
+(def column-headers [{:column/id         :order/id
+                      :column/name       "Order #"
                       :column/min-width  50
-                      :column/pref-width 200
+                      :column/pref-width 300
                       :column/max-width  300
-                      :column/name       "Description"
-                      :column/render     :cell/string}])
+                      :column/render     :cell/string}
+                     {:column/id     :customer/id
+                      :column/name   "Customer"
+                      :column/render :cell/string}])
 
 
 (defn window [{:keys [fx/context title x y width height]}]
+  (println "window" context)
   (let [data (fx/sub-val context :customer/orders)]
     {:fx/type w/window
      :title   title
