@@ -13,3 +13,4 @@
    :scene         {:fx/type :scene
                    :root    (merge {:fx/type content}
                               (dissoc params :fx/type))}})
+

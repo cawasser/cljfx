@@ -58,11 +58,11 @@
 
 (defn- get-potion [potion-name]
   (let [db (fx/sub-ctx @app-db #(fx/sub-val % :id->potion))]
-    (as-> db m
-      (map (juxt key #(-> % val :name)) m)
-      (filter (fn [[k v]] (= potion-name v)) m)
-      (first m)
-      (first m))))
+    (->> db
+      (map (juxt key #(-> % val :name)))
+      (filter (fn [[k v]] (= potion-name v)))
+      first
+      first)))
 
 
 (defn get-ingredient [ingredient-name]
@@ -311,6 +311,9 @@
 ; endregion
 
 
+
+
+
 (def renderer
   (fx/create-renderer
     :middleware (comp
@@ -358,6 +361,7 @@
 ; logic to find a potion by name
 (comment
   (def potion-name "Antidote")
+  (def ingredient-name "Fireberries")
 
   (let [db (fx/sub-ctx @app-db #(fx/sub-val % :id->potion))]
     (as-> db m
