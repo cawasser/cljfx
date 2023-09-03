@@ -1,4 +1,5 @@
-(ns e101a-support)
+(ns e101a-support
+  (:require [e101a-table-cells :as cells]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -33,19 +34,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; region ; TABLE CONTENT
 ;
-(defn- string-cell [{:keys [column/id]}]
-  (fn [x]
-    {:text (str (id x))}))
-
-(defn- color-cell [_]
-  (fn [x]
-    {:style {:-fx-background-color
-             (:color x)}}))
-
-
-(def reg {:cell/string #'string-cell
-          :cell/color  #'color-cell})
-
 
 (defn- header-cell [{:keys [column/name column/render
                             column/min-width column/max-width column/pref-width]
@@ -54,7 +42,7 @@
           :text               name
           :cell-value-factory identity
           :cell-factory       {:fx/cell-type :table-cell
-                               :describe     ((render reg) cell-heading)}}
+                               :describe     ((render cells/reg) cell-heading)}}
     (when min-width {:min-width min-width})
     (when max-width {:max-width max-width})
     (when pref-width {:pref-width pref-width})))
