@@ -35,7 +35,7 @@
 ;
 (defn- string-cell [{:keys [column/id]}]
   (fn [x]
-    {:text (id x)}))
+    {:text (str (id x))}))
 
 (defn- color-cell [_]
   (fn [x]
@@ -61,10 +61,12 @@
 
 
 (defn table-view [{:keys [data columns pref-width pref-height]}]
+  (println "table-view" data)
   {:fx/type     :table-view
    :pref-width  pref-width
    :pref-height pref-height
    :columns     (map header-cell columns)
    :items       data})
+
 
 ; endregion

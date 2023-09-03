@@ -5,7 +5,8 @@
             [e101a-state :as state]
             [e101a-description :as d]
             [e101a-color :as c]
-            [e101a-table :as t])
+            [e101a-table :as t]
+            [e101a-sales-dashboard :as sales])
   (:import [javafx.stage Screen]))
 
 
@@ -39,7 +40,10 @@
               :x 300 :y 300 :width width :height height}
              {:fx/type t/window
               :title "Table View"
-              :x 600 :y 600 :width width :height height}]})
+              :x 600 :y 600 :width width :height height}
+             {:fx/type sales/dashboard
+              :title "Sales Dashboard"
+              :x 800 :y 800 :width width :height height}]})
 
 
 (def renderer
